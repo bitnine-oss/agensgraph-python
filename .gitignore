@@ -1,2 +1,5 @@
 *.swp
 *.pyc
+agtype.egg-info
+build
+dist
