@@ -1,0 +1,10 @@
+INSTALL
+=======
+
+$ python set.py install
+
+
+TEST
+====
+
+$ python test_agtype [-v]

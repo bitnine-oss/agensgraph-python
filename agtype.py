@@ -1,3 +1,19 @@
+'''
+Copyright (c) 2014-2016, Bitnine Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+'''
+
 import re, json
 
 _v_matcher = re.compile(r'(.+)\[(\d+)\.(\d+)\](.+)')
@@ -113,3 +129,8 @@ psycopg2.extensions.register_type(EDGE)
 
 PATH = psycopg2.extensions.new_type((7032,), "PATH", _cast_path)
 psycopg2.extensions.register_type(PATH)
+
+class AgProp(psycopg2.extras.Json):
+    def getquoted(self):
+        return psycopg2.extras.Json.getquoted(self) + '::jsonb'
+

@@ -1,3 +1,19 @@
+'''
+Copyright (c) 2014-2016, Bitnine Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+'''
+
 import unittest
 import psycopg2
 from psycopg2.extras import Json
@@ -51,7 +67,7 @@ class LabelInheritTest(BasicTest):
         self.cur.execute("create (:child {'name': 'son'})")
         pass
     def test_MultiLable(self):
-        self.cur.execute("MATCH (x:parent) RETURN x ORDER BY (x).name")
+        self.cur.execute("MATCH (x:parent) RETURN x ORDER BY x.name")
         x = self.cur.fetchone()[0]
         self.assertEquals("father", x.props["name"])
         x = self.cur.fetchone()[0]
@@ -82,7 +98,7 @@ class MatchTest(BasicTest):
                 + ", (p:person {'name': 'jsyang'}) "
                 + "create (m)-[:manage]->(p)")
     def test_Match(self):
-        self.cur.execute("MATCH (c)-[e]->(p1)-[m]->(p2) RETURN p1, p2 ORDER BY (p2).name")
+        self.cur.execute("MATCH (c)-[e]->(p1)-[m]->(p2) RETURN p1, p2 ORDER BY p2.name")
         row = self.cur.fetchone()
         boss = row[0]
         self.assertEquals("person", boss.label)
@@ -126,16 +142,16 @@ class PropertyTest(BasicTest):
         self.cur.execute("match (n)-[:employee {'no':2}]->(m) RETURN n, m")
         row = self.cur.fetchone()
         self.assertEquals("climbing", row[1].props["hobbies"][1])
-        self.cur.execute("match (n)-[{'no':2}]->(m) return (m).hobbies as hobbies")
+        self.cur.execute("match (n)-[{'no':2}]->(m) return m.hobbies::jsonb as hobbies")
         hobbies = self.cur.fetchone()[0]
         self.assertEquals("reading", hobbies[0])
-        self.cur.execute("match (ee:person) where (ee).klout = to_jsonb(99::int) "
-                + "return (ee).name, (ee).name::text")
+        self.cur.execute("match (ee:person) where ee.klout::int = 99 "
+                + "return ee.name, to_jsonb(ee.name)")
         row = self.cur.fetchone()
-        self.assertIsInstance(row[0], unicode)
+        self.assertIsInstance(row[0], str)
         self.assertEquals("Emil", row[0])
-        self.assertIsInstance(row[1], str)
-        self.assertEquals('"Emil"', row[1])
+        self.assertIsInstance(row[1], unicode)
+        self.assertEquals('Emil', row[1])
 
 class ReturnTest(BasicTest):
     def test_Return(self):
@@ -143,6 +159,9 @@ class ReturnTest(BasicTest):
         row = self.cur.fetchone()
         self.assertEquals("be happy!", row[0])
         self.assertEquals(2, row[1])
+        self.cur.execute("RETURN %s", (Json({'name': 'Emil'}),))
+        row = self.cur.fetchone()[0]
+        #self.assertEquals("\"Emil\"", row["name"])
 
 class WhereTest(BasicTest):
     def setUp(self):
@@ -150,23 +169,23 @@ class WhereTest(BasicTest):
         self.cur.execute("create vlabel person")
         self.cur.execute("create (:person { 'name': 'Emil', 'from': 'Sweden', 'klout': 99})")
     def test_Where(self):
-        self.cur.execute("match (ee:person) where (ee).name = to_jsonb('Emil'::text) return ee")
+        self.cur.execute("match (ee:person) where ee.name = 'Emil' return ee")
         row = self.cur.fetchone()[0]
         self.assertEquals(99, row.props["klout"])
-        self.cur.execute("match (ee:person) where (ee).klout = to_jsonb(99::int) return ee")
+        #self.cur.execute("match (ee:person) where ee.klout = to_jsonb(99::int) return ee")
+        self.cur.execute("match (ee:person) where ee.klout::int = %s return ee", (99,))
         row = self.cur.fetchone()[0]
         self.assertEquals(99, row.props["klout"])
     def test_WhereBind(self):
-        self.cur.execute("match (ee:person) where (ee).from = to_jsonb(%s::text) return ee", ('Sweden',))
+        self.cur.execute("match (ee:person) where ee.from = %s return ee", ('Sweden',))
         row = self.cur.fetchone()[0]
         self.assertEquals(99, row.props["klout"])
-        self.cur.execute("match (ee:person {'klout': %s}) return (ee).name", (99,))
+        self.cur.execute("match (ee:person {'klout': %s}) return ee.name", (99,))
         row = self.cur.fetchone()[0]
-        self.assertIsInstance(row, unicode)
+        self.assertIsInstance(row, str)
         self.assertEquals("Emil", row)
     def test_WhereBindJson(self):
-        self.cur.execute("match (ee:person) where (ee).name = %s return ee",
-                (Json("Emil"),))
+        self.cur.execute("match (ee:person) where ee.name = %s return ee", ("Emil",))
         row = self.cur.fetchone()[0]
         self.assertIsInstance(row, agtype.Vertex)
         self.assertEquals("Emil", row.props["name"])
