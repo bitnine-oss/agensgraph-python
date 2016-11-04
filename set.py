@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "agtype",
-    version = "1.0",
+    version = "0.9.0",
     scripts = ["agtype.py"],
     install_requires=["psycopg2>=2.5.4"],
     test_suite = "test_agtype",
