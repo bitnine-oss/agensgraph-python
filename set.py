@@ -7,6 +7,6 @@ setup(
     test_suite = "test_agtype",
     author = "Kyungtae Lee",
     author_email = "ktlee@bitnine.net",
-    description = "A type extension module for agens-graph",
+    description = "A type extension module for AgensGraph",
     url = "http://bitnine.net"
 )
