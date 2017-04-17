@@ -52,7 +52,7 @@ class CreateTest(BasicTest):
         with self.assertRaises(psycopg2.ProgrammingError):
             self.cur.execute("CREATE ( :person %s )", (Json(10),));
     def test_CreateWithBindWholeProp(self):
-        self.cur.execute("CREATE ( :person %s )", 
+        self.cur.execute("CREATE ( :person %s )",
                 (Json({'name': 'ktlee', 'from': 'Korea', 'klout': 17}),))
         self.cur.execute("MATCH (n:person {'name': %s}) return n", ('ktlee',))
         n = self.cur.fetchone()[0]
@@ -114,7 +114,12 @@ class MatchTest(BasicTest):
     def test_Path(self):
         self.cur.execute("MATCH p=()-[]->()-[]->({'name':'ktlee'}) RETURN p")
         p = self.cur.fetchone()[0]
-        self.assertEquals(["bitnine","kskim","ktlee"], 
+        self.assertEquals('company[3.1]{"name": "bitnine"},employee[5.1][3.1,4.1]{},'
+                        + 'person[4.1]{"name": "kskim"},manage[6.1][4.1,4.2]{},'
+                        + 'person[4.2]{"name": "ktlee"}',
+                          str(p))
+
+        self.assertEquals(["bitnine","kskim","ktlee"],
                 [v.props["name"] for v in p.vertices])
         self.assertEquals(["employee","manage"],
                 [e.label for e in p.edges])
@@ -190,12 +195,12 @@ class WhereTest(BasicTest):
         self.assertIsInstance(row, agtype.Vertex)
         self.assertEquals("Emil", row.props["name"])
     def test_MatchBindStr(self):
-        self.cur.execute("match (ee:person %s) return ee", 
+        self.cur.execute("match (ee:person %s) return ee",
                 ("{\"name\": \"Emil\"}",))
         row = self.cur.fetchone()[0]
         self.assertEquals(99, row.props["klout"])
     def test_MatchBindJson(self):
-        self.cur.execute("match (ee:person %s) return ee", 
+        self.cur.execute("match (ee:person %s) return ee",
                 (Json({'name': 'Emil'}),))
         row = self.cur.fetchone()[0]
         self.assertEquals(99, row.props["klout"])

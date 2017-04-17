@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import psycopg2
 import re, json
 
 _v_matcher = re.compile(r'(.+)\[(\d+)\.(\d+)\](.+)')
@@ -24,7 +25,7 @@ class GID:
         self.oid = oident
         self.id = ident
     def __repr__(self):
-        return "[" + self.oid + "." + self.id + "]"
+        return self.oid + "." + self.id
 
 class Vertex:
     def __init__(self, value):
@@ -35,7 +36,7 @@ class Vertex:
         self.vid = GID(m.group(2), m.group(3))
         self.props = json.loads(m.group(4))
     def __repr__(self):
-        return self.label + str(self.vid) + json.dumps(self.props)
+        return self.label + '[' + str(self.vid) + ']' + json.dumps(self.props)
 
 def _cast_vertex(value, cur):
     if value is None:
@@ -57,9 +58,7 @@ class Edge:
         self.evid = GID(m.group(6), m.group(7))
         self.props = json.loads(m.group(8))
     def __repr__(self):
-        svid = str(self.svid)[0:-1]
-        evid = str(self.evid)[1:]
-        return self.label + str(self.eid) + svid + ',' + evid + json.dumps(self.props)
+        return self.label + '[' + str(self.eid) + '][' + str(self.svid) + ',' + str(self.evid) + ']' + json.dumps(self.props)
 
 def _cast_edge(value, cur):
     if value is None:
@@ -102,7 +101,7 @@ class Path:
         l.append(v[s:i])
         return l
     def __repr__(self):
-        return ''.join(map(lambda x,y:repr(x)+repr(y),self.vertices,self.edges))[0:-4]
+        return ','.join(map(lambda x,y:repr(x)+','+repr(y),self.vertices,self.edges))[0:-5]
     def start(self):
         return self.vertices[0]
     def end(self):
@@ -119,8 +118,6 @@ def _cast_path(value, cur):
         return psycopg2.InterfaceError("bad path representation: %s" % value)
     return p
 
-import psycopg2
-
 VERTEX = psycopg2.extensions.new_type((7012,), "VERTEX", _cast_vertex)
 psycopg2.extensions.register_type(VERTEX)
 
@@ -129,8 +126,3 @@ psycopg2.extensions.register_type(EDGE)
 
 PATH = psycopg2.extensions.new_type((7032,), "PATH", _cast_path)
 psycopg2.extensions.register_type(PATH)
-
-class AgProp(psycopg2.extras.Json):
-    def getquoted(self):
-        return psycopg2.extras.Json.getquoted(self) + '::jsonb'
-
