@@ -1,9 +1,6 @@
-# AgensGraph Python driver
+# AgensGraph Python Driver
 
-It is AgensGraph client for Python, supports the graph data types like Vertex, Edge and Path used in AgensGraph.
-
-It is based on [psycopg2](https://github.com/psycopg/psycopg2).
-
+AgensGraph Python Driver allows Python programs to connect to an AgensGraph database. Since it is [Psycopg2](http://initd.org/psycopg/) type extension module for AgensGraph, it supports additional data types such as `Vertex`, `Edge`, and `Path` to represent graph data.
 
 ## Install
 
@@ -11,35 +8,41 @@ It is based on [psycopg2](https://github.com/psycopg/psycopg2).
 $ pip install -U pip
 $ pip install psycopg2
 
-$ python /path/to/set.py install
-
+$ python /path/to/agensgraph/python/setup.py install
 ```
-
 
 ## Example
 
 ```python
 import psycopg2
+import agensgraph
 
-connect = psycopg2.connect("dbname=agens user=bylee host=127.0.0.1")
+conn = psycopg2.connect("dbname=test host=127.0.0.1 user=agens")
 cur = connect.cursor()
-cur.execute("DROP GRAPH IF EXISTS g CASCADE")
-cur.execute("CREATE GRAPH g")
-cur.execute("SET graph_path = g")
+cur.execute("DROP GRAPH IF EXISTS t CASCADE")
+cur.execute("CREATE GRAPH t")
+cur.execute("SET graph_path = t")
 
-cur.execute("CREATE p=(:v{name: 'agens'})-[:e]->() RETURN p")
-cur.execute("MATCH ()-[r]->() RETURN count(*)")
-print cur.fetchone()[0]
-
+cur.execute("CREATE (:v {name: 'AgensGraph'})")
+cur.execute("MATCH (n) RETURN n")
+v = cur.fetchone()[0]
+print(v.props['name'])
 ```
-
-
 
 ## Test
 
-```sh
-$ python test_agtype [-v]
+You may run the following command to test AgensGraph Python Driver.
 
+```sh
+$ python setup.py test
 ```
 
-The test cases must be executed in Python 2.x
+Before running the command, set the following environment variables to specify which database you will use for the test.
+
+Variable Name                | Meaning
+---------------------------- | ---------------------------
+`AGENSGRAPH_TESTDB`          | database name to connect to
+`AGENSGRAPH_TESTDB_HOST`     | database server host
+`AGENSGRAPH_TESTDB_PORT`     | database server port
+`AGENSGRAPH_TESTDB_USER`     | database user name
+`AGENSGRAPH_TESTDB_PASSWORD` | user password

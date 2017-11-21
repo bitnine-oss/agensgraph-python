@@ -1,6 +1,6 @@
-*.swp
-*.pyc
-agtype.egg-info
+.eggs/
 build
 dist
-.idea
+*.egg-info/
+*.pyc
+*.swp
