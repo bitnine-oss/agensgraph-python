@@ -37,6 +37,8 @@ class Vertex:
         self.props = json.loads(m.group(4))
     def __repr__(self):
         return self.label + '[' + str(self.vid) + ']' + json.dumps(self.props)
+    def get_props(self):
+        return json.dumps(self.props)
 
 def _cast_vertex(value, cur):
     if value is None:
@@ -118,6 +120,31 @@ def _cast_path(value, cur):
         return psycopg2.InterfaceError("bad path representation: %s" % value)
     return p
 
+class Edge_array:
+    def __init__(self, value):
+        value = value[1:-1]
+        self.edges = []
+        for i in value.split('},'):
+            if not i.endswith('}'):
+                i += '}'
+            self.edges.append(Edge(i))
+    def __repr__(self):
+        return str(self.edges)
+    def get_len(self):
+        return len(self.edges)
+    def get_labels(self):
+        return [edge.label for edge in self.edges]
+
+def _cast_edge_array(value, cur):
+    if value is None:
+        return None
+    try:
+        ea = Edge_array(value)
+    except:
+        return psycopg2.InterfaceError("bad edge array representation: %s" % value)
+    return ea
+
+
 VERTEX = psycopg2.extensions.new_type((7012,), "VERTEX", _cast_vertex)
 psycopg2.extensions.register_type(VERTEX)
 
@@ -126,3 +153,6 @@ psycopg2.extensions.register_type(EDGE)
 
 PATH = psycopg2.extensions.new_type((7032,), "PATH", _cast_path)
 psycopg2.extensions.register_type(PATH)
+
+EDGE_ARRAY = psycopg2.extensions.new_type((7021,), "EDGE_ARRAY", _cast_edge_array)
+psycopg2.extensions.register_type(EDGE_ARRAY)
