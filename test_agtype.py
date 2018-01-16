@@ -183,5 +183,27 @@ class WhereTest(BasicTest):
         self.assertIsInstance(row, agtype.Vertex)
         self.assertEquals("Emil", row.props["name"])
 
+class EdgeArrayTest(BasicTest):
+    def setUp(self):
+        BasicTest.setUp(self)
+        self.cur.execute("create (:v1{name: 'v1'})-[:e1{name: 'e1'}]->(:v2{name: 'v2'})"
+                         + "-[:e2{name: 'e2'}]->(:v3{name: 'v3'})"
+                         +  "-[:e3{name: 'e3'}]->(:v4{name: 'v4'});")
+    def test_edgeArray(self):
+        self.cur.execute("MATCH (a)-[r*..]->(b) RETURN a, r, b limit 2")
+        row = self.cur.fetchone()
+        self.assertEquals('(v1[3.1]{"name": "v1"}, [e1[4.1][3.1,5.1]{"name": "e1"}], v2[5.1]{"name": "v2"})', str(row))
+        self.assertEquals('{"name": "v1"}', row[0].get_props())
+        self.assertEquals(['e1'], row[1].get_labels())
+        self.assertEquals(1, row[1].get_len())
+        self.assertEquals('{"name": "v2"}', row[2].get_props())
+        row = self.cur.fetchone()
+        self.assertEquals('(v1[3.1]{"name": "v1"}, [e1[4.1][3.1,5.1]{"name": "e1"}, '
+                          + 'e2[6.1][5.1,7.1]{"name": "e2"}], v3[7.1]{"name": "v3"})', str(row))
+        self.assertEquals('{"name": "v1"}', row[0].get_props())
+        self.assertEquals(['e1', 'e2'], row[1].get_labels())
+        self.assertEquals(2, row[1].get_len())
+        self.assertEquals('{"name": "v3"}', row[2].get_props())
+
 if __name__ == '__main__':
     unittest.main()
