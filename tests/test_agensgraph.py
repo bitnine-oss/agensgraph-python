@@ -1,5 +1,5 @@
 '''
-Copyright (c) 2014-2017, Bitnine Inc.
+Copyright (c) 2014-2018, Bitnine Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -123,6 +123,37 @@ class TestPath(TestConnection):
                     "MATCH ()-[r]->() WHERE id(r) = %s RETURN count(*)",
                     (e.eid,))
             self.assertEqual(1, self.cur.fetchone()[0])
+
+class TestParam(TestConnection):
+    def setUp(self):
+        super(TestParam, self).setUp()
+        self.name = "'Agens\"Graph'"
+
+    def test_param_dict(self):
+        d = {'name': self.name, 'since': 2016}
+        p = agensgraph.Property(d)
+        self.cur.execute('CREATE (n %s) RETURN n', (p,))
+        self.conn.commit()
+
+        v = self.cur.fetchone()[0]
+        self.assertEqual(self.name, v.props['name'])
+        self.assertEqual(2016, v.props['since'])
+
+    def test_param_list_and_tuple(self):
+        a = [self.name, 2016]
+        t = (self.name, 2016)
+        pa = agensgraph.Property(a)
+        pt = agensgraph.Property(t)
+        self.cur.execute('CREATE (n {a: %s, t: %s}) RETURN n', (pa, pt))
+        self.conn.commit()
+
+        v = self.cur.fetchone()[0]
+        va = v.props['a']
+        self.assertEqual(self.name, va[0])
+        self.assertEqual(2016, va[1])
+        vt = v.props['t']
+        self.assertEqual(self.name, vt[0])
+        self.assertEqual(2016, vt[1])
 
 if __name__ == '__main__':
     unittest.main()

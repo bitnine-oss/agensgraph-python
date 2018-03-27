@@ -21,6 +21,7 @@ from agensgraph._graphid import (
 from agensgraph._vertex import Vertex, cast_vertex as _cast_vertex
 from agensgraph._edge import Edge, cast_edge as _cast_edge
 from agensgraph._graphpath import Path, cast_graphpath as _cast_graphpath
+from agensgraph._property import Property
 
 _GRAPHID_OID = 7002
 _VERTEX_OID = 7012
@@ -40,5 +41,5 @@ _ext.register_type(EDGE)
 PATH = _ext.new_type((_GRAPHPATH_OID,), 'PATH', _cast_graphpath)
 _ext.register_type(PATH)
 
-__all__ = ['GraphId', 'Vertex', 'Edge', 'Path',
+__all__ = ['GraphId', 'Vertex', 'Edge', 'Path', 'Property',
            'GRAPHID', 'VERTEX', 'EDGE', 'PATH']
