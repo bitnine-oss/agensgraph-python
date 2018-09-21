@@ -14,5 +14,5 @@ setup(
     maintainer='Gitae Yun',
     maintainer_email='gtyun@bitnine.net',
     url='https://github.com/bitnine-oss/agensgraph-python',
-    license='Apache License Version 2.0',
+    license='GNU Affero General Public License',
 )
