@@ -2,13 +2,16 @@
 
 AgensGraph Python Driver allows Python programs to connect to an AgensGraph database. Since it is [Psycopg2](http://initd.org/psycopg/) type extension module for AgensGraph, it supports additional data types such as `Vertex`, `Edge`, and `Path` to represent graph data.
 
-## Install
+## Features
+- Cypher query support for Psycopg2 PostgreSQL Python driver (enables cypher queries directly)
+- Deserialize AgensGraph results (AGType) to Vertex, Edge, Path
+
+## Build From Source
 
 ```sh
-$ pip install -U pip
-$ pip install psycopg2
-
-$ python /path/to/agensgraph/python/setup.py install
+git clone https://github.com/bitnine-oss/agensgraph-python
+cd agensgraph-python
+python setup.py install
 ```
 
 ## Example
@@ -36,7 +39,7 @@ print(v.props['name'])
 You may run the following command to test AgensGraph Python Driver.
 
 ```sh
-$ python setup.py test
+python setup.py test
 ```
 
 Before running the command, set the following environment variables to specify which database you will use for the test.
